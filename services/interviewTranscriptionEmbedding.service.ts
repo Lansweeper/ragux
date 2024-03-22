@@ -51,6 +51,7 @@ const insertEmbeddings = async (
   await chClient.insert<EnterviewTranscriptionEmbedding>({
     table: INTERVIEW_TRANSCRIPTION_EMBEDDING_TABLE,
     values: embeddings,
+    format: "JSONEachRow",
   });
 };
 
