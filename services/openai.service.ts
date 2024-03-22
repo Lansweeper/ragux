@@ -32,7 +32,7 @@ const answerContextQuestions = async (files: File[], questions: string[]) => {
   return Promise.all(answerPromises) as Promise<Record<string, string>[]>;
 };
 
-const contextSystemPropmt = (context: string[]) =>
+const contextSystemPropmt = (context: string[], prompt: string) =>
   openai.chat.completions.create({
     model: MODEL,
     messages: [
@@ -40,10 +40,14 @@ const contextSystemPropmt = (context: string[]) =>
         role: "system",
         content:
           `You are a helpful chat assistant who helps our UX team query video transcripts that are user interviews. \n` +
-          `Answer the question based on the context below. \n` +
-          context.join(`\n`) +
           `You must follow this rules: \n` +
-          `Do not answer if the if the solution is not provided in the context and politely ask them a question related to the product.\n`,
+          `Do not answer if the if the solution is not provided in the context and politely ask them a question related to the product.\n` +
+          `Answer the question based on the context below: \n` +
+          context.join(`\n`),
+      },
+      {
+        role: "user",
+        content: prompt,
       },
     ],
   });

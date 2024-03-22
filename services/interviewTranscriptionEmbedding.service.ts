@@ -9,7 +9,7 @@ SELECT
     content,
     <<distanceFn>>(embedding, [<<queryVector>>]) as distance
 FROM ${INTERVIEW_TRANSCRIPTION_EMBEDDING_TABLE}
-WHERE contextId = "<<contextId>>" distance >= <<minDistance>>
+WHERE contextId = '<<contextId>>' AND distance <= <<minDistance>>
 ORDER BY distance ASC
 LIMIT <<limit>>
 `;
@@ -18,7 +18,7 @@ const findEmbeddings = async ({
   queryVector,
   contextId,
   limit = 10,
-  minDistance = 0.6,
+  minDistance = 0,
 }: {
   queryVector: number[];
   contextId: string;
@@ -28,14 +28,13 @@ const findEmbeddings = async ({
   const chClient = await getClickhouseClient();
   const query = FIND_EMBEDDINGS_QUERY.replace(
     /<<queryVector>>/g,
-    queryVector
-      .join(",")
-      .replace(/<<distanceFn>>/g, "cosineDistance")
-      .replace(/<<minDistance>>/g, minDistance.toString())
-      .replace(/<<contextId>>/g, contextId)
-      .replace(/<<limit>>/g, limit.toString())
-  );
-
+    queryVector.join(",")
+  )
+    .replace(/<<distanceFn>>/g, "cosineDistance")
+    .replace(/<<minDistance>>/g, minDistance.toString())
+    .replace(/<<contextId>>/g, contextId)
+    .replace(/<<limit>>/g, limit.toString());
+  console.log(query);
   const result = await chClient.query({ query });
   const jsonResult = await result.json<{
     data: EnterviewTranscriptionEmbedding[];

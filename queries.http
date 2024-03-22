@@ -1,0 +1,7 @@
+POST http://localhost:3000/api/assistant
+Content-Type: 'application/json'
+
+{
+  "prompt": "What are the primary pain points or challenges mentioned by users?",
+  "contextId": "a4240539-ea84-4794-96a5-94a03464a332"
+}

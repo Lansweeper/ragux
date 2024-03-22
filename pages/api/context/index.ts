@@ -42,13 +42,16 @@ export default async function handler(
       const vectors = await Promise.all(
         Object.entries(answersByQuestion).map(
           async ([question, answers], index) => {
+            const content = `Question: ${question}\nAnswers: ${answers.join(
+              "\n"
+            )}`;
             const vector = await openai.embeddings.create({
-              input: answers.join("\n"),
+              input: content,
               model: EMBEDDING_MODEL,
               encoding_format: "float",
             });
             return {
-              content: answers.join("\n"),
+              content: content,
               contextId: context.id,
               docTitle: question,
               embedding: vector.data[0].embedding,

@@ -10,7 +10,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<{ answer: string | null }>
 ) {
-  if (req.method === "GET") {
+  if (req.method === "POST") {
     const body: {
       prompt: string;
       contextId: string;
@@ -33,14 +33,17 @@ export default async function handler(
 
     for (const embedding of embeddings) {
       totalTokens += numTokensFromString(embedding.content);
+
       if (totalTokens < MAX_TOKENS) {
         context.push(embedding.content);
       } else {
         break;
       }
     }
-
-    const completion = await openAIService.contextSystemPropmt(context);
+    const completion = await openAIService.contextSystemPropmt(
+      context,
+      body.prompt
+    );
 
     res.status(200).json({ answer: completion.choices[0].message.content });
   } else {
