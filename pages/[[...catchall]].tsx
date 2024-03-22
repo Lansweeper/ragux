@@ -6,6 +6,7 @@ import {
   PlasmicRootProvider,
 } from "@plasmicapp/loader-nextjs";
 import type { GetStaticPaths, GetStaticProps } from "next";
+import { usePlasmicAuth } from "@plasmicapp/auth-react";
 
 import Error from "next/error";
 import { useRouter } from "next/router";
@@ -29,6 +30,7 @@ export default function PlasmicLoaderPage(props: {
       pageRoute={pageMeta.path}
       pageParams={pageMeta.params}
       pageQuery={router.query}
+      authRedirectUri={"http://localhost:3000/"}
     >
       <PlasmicComponent component={pageMeta.displayName} />
     </PlasmicRootProvider>
