@@ -9,6 +9,14 @@ import { contextService } from "@/services/context";
 import { openai, EMBEDDING_MODEL } from "@/infrastructure/openAI";
 import { EnterviewTranscriptionEmbedding } from "@/model/clickhouse";
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "10mb",
+    },
+  },
+};
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<{
@@ -25,7 +33,6 @@ export default async function handler(
     case "POST":
       const newContext: Context = req.body;
       newContext.id = crypto.randomUUID();
-      const context = await contextService.createContext(newContext, mongoDB);
       const constexAnswers = await openAIService.answerContextQuestions(
         newContext.files,
         newContext.questions.map((question) => question.content)
@@ -39,6 +46,11 @@ export default async function handler(
         });
         return acc;
       }, {} as Record<string, string[]>);
+
+      const context = await contextService.createContext(
+        { ...newContext, questionAnswers: answersByQuestion },
+        mongoDB
+      );
       const vectors = await Promise.all(
         Object.entries(answersByQuestion).map(
           async ([question, answers], index) => {

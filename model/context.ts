@@ -15,5 +15,6 @@ export interface File {
 export interface Context {
   id: string;
   questions: QuestionContext[];
+  questionAnswers: Record<string, string[]>;
   files: File[];
 }

@@ -32,7 +32,7 @@ export default async function handler(
     let totalTokens = 0;
 
     for (const embedding of embeddings) {
-      totalTokens += numTokensFromString(embedding.content);
+      totalTokens += await numTokensFromString(embedding.content);
 
       if (totalTokens < MAX_TOKENS) {
         context.push(embedding.content);

@@ -1,32 +1,53 @@
 import { openai, MODEL } from "@/infrastructure/openAI";
 import { File } from "@/model/context";
-
-const decodeBase64 = (text: string) => {
-  return atob(text);
-};
+import { chunkText, cleanVttTokens } from "@/utils/tiktoken";
 
 const answerContextQuestions = async (files: File[], questions: string[]) => {
+  console.log(`0/${files.length}`);
+  let count = 0;
   const answerPromises = files.map(async (file) => {
-    const answer = await openai.chat.completions.create({
-      model: MODEL,
-      temperature: 0,
-      response_format: { type: "json_object" },
-      messages: [
-        {
-          role: "system",
-          content:
-            "You will be provided with an array of questions that you must answer." +
-            "The response should be a JSON composed with the question title unmodified as the key and the answer to the question as the value." +
-            "To respond, you must base it on the following interview transcript: \n" +
-            Buffer.from(file.contents, "base64"),
-        },
-        {
-          role: "user",
-          content: JSON.stringify(questions),
-        },
-      ],
-    });
-    return JSON.parse(answer.choices[0].message.content as string);
+    const cleanText = cleanVttTokens(
+      Buffer.from(file.contents, "base64").toString()
+    );
+    const textChunks = await chunkText(cleanText);
+    const answers = await Promise.all(
+      textChunks.map((chunk) => {
+        return openai.chat.completions.create({
+          model: MODEL,
+          temperature: 0,
+          response_format: { type: "json_object" },
+          messages: [
+            {
+              role: "system",
+              content:
+                "You will be provided with an array of questions that you must answer." +
+                "The response should be a JSON composed with the question title unmodified as the key and the answer to the question as the value." +
+                "If the answer is not present in the context return an empty string." +
+                "To respond, you must base it on the following interview transcript: \n" +
+                chunk,
+            },
+            {
+              role: "user",
+              content: JSON.stringify(questions),
+            },
+          ],
+        });
+      })
+    );
+    count++;
+    console.log(`${count}/${files.length}`);
+    const parsedAnswers = answers.map((answer) =>
+      JSON.parse(answer.choices[0].message.content as string)
+    );
+    return parsedAnswers.reduce((acc, answer) => {
+      Object.entries(answer).forEach(([question, answer]) => {
+        if (!acc[question]) {
+          acc[question] = [];
+        }
+        acc[question] += answer;
+      });
+      return acc;
+    }, {} as Record<string, string[]>);
   });
 
   return Promise.all(answerPromises) as Promise<Record<string, string>[]>;
