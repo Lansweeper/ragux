@@ -30,8 +30,6 @@ export default async function handler(
         newContext.files,
         newContext.questions.map((question) => question.content)
       );
-      console.log(constexAnswers);
-
       const answersByQuestion = constexAnswers.reduce((acc, answer) => {
         Object.entries(answer).forEach(([question, answer]) => {
           if (!acc[question]) {
@@ -41,8 +39,6 @@ export default async function handler(
         });
         return acc;
       }, {} as Record<string, string[]>);
-      console.log(answersByQuestion);
-
       const vectors = await Promise.all(
         Object.entries(answersByQuestion).map(
           async ([question, answers], index) => {
@@ -62,7 +58,7 @@ export default async function handler(
           }
         )
       );
-
+      await interviewTranscriptionEmbeddingService.insertEmbeddings(vectors);
       res.status(200).json({ result: context });
       break;
     default:

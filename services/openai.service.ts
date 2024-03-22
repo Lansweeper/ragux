@@ -9,17 +9,20 @@ const answerContextQuestions = async (files: File[], questions: string[]) => {
   const answerPromises = files.map(async (file) => {
     const answer = await openai.chat.completions.create({
       model: MODEL,
+      temperature: 0,
       response_format: { type: "json_object" },
       messages: [
         {
           role: "system",
           content:
-            "Answer the questions provided by the users based on the following text and return the answer in a JSON object using the question text as the key, the answer for each question must be a string: \n" +
+            "You will be provided with an array of questions that you must answer." +
+            "The response should be a JSON composed with the question title unmodified as the key and the answer to the question as the value." +
+            "To respond, you must base it on the following interview transcript: \n" +
             Buffer.from(file.contents, "base64"),
         },
         {
           role: "user",
-          content: questions.join("\n"),
+          content: JSON.stringify(questions),
         },
       ],
     });
