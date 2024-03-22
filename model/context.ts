@@ -17,4 +17,5 @@ export interface Context {
   questions: QuestionContext[];
   questionAnswers: Record<string, string[]>;
   files: File[];
+  createAt: Date;
 }
