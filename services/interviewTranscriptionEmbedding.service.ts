@@ -18,7 +18,7 @@ const findEmbeddings = async ({
   queryVector,
   contextId,
   limit = 10,
-  minDistance = 0,
+  minDistance = 1,
 }: {
   queryVector: number[];
   contextId: string;
