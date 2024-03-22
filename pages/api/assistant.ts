@@ -11,13 +11,16 @@ export default async function handler(
   res: NextApiResponse<{ answer: string | null }>
 ) {
   if (req.method === "POST") {
-    const body: {
+    const {
+      prompt,
+      contextId,
+    }: {
       prompt: string;
       contextId: string;
-    } = JSON.parse(req.body);
+    } = req.body;
 
     const vector = await openai.embeddings.create({
-      input: body.prompt,
+      input: prompt,
       model: EMBEDDING_MODEL,
       encoding_format: "float",
     });
@@ -25,7 +28,7 @@ export default async function handler(
     const embeddings =
       await interviewTranscriptionEmbeddingService.findEmbeddings({
         queryVector: vector.data[0].embedding,
-        contextId: body.contextId,
+        contextId: contextId,
       });
 
     const context = [];
@@ -40,10 +43,7 @@ export default async function handler(
         break;
       }
     }
-    const completion = await openAIService.contextSystemPropmt(
-      context,
-      body.prompt
-    );
+    const completion = await openAIService.contextSystemPropmt(context, prompt);
 
     res.status(200).json({ answer: completion.choices[0].message.content });
   } else {
