@@ -22,11 +22,10 @@ export default async function handler(
       break;
     case "DELETE":
       contextService.deleteContext(contextId, mongoDB);
+      res.status(204).end();
       break;
     default:
       res.setHeader("Allow", ["POST", "GET"]);
       res.status(405).end(`Method ${req.method} Not Allowed`);
   }
-
-  res.end(`context: ${id}`);
 }
